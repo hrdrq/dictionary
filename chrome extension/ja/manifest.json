@@ -1,0 +1,39 @@
+{
+  "manifest_version": 2,
+  "name": "DictJA",
+  "description": "This extension detect broken link and blank link.",
+  "version": "1.0",
+  "icons": {
+    "16": "images/icon/icon_16.png",
+    "48": "images/icon/icon_48.png",
+    "128": "images/icon/icon_128.png"
+  },
+  "background": {
+    "scripts": [
+      "background.js"
+    ],
+    "persistent": false
+  },
+  "browser_action": {
+    "default_title": "ngc",
+    "default_popup": "page/index.html"
+  },
+  "options_page": "options.html",
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "css": ["contents_style.css"],
+      "js": ["common.js"]
+    }
+  ],
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "https://*/*",
+    "http://*/*",
+    "storage",
+    "webNavigation"
+  ]
+}

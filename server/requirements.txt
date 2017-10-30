@@ -1,0 +1,10 @@
+requests
+pyquery
+js2py
+grequests
+pymysql
+sqlalchemy
+jaconv
+tornado
+boto3
+mtranslate

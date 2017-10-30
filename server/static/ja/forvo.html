@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="css/main_pc.css">
+  <meta name="viewport" content="width=device-width,height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	<meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="辞書">
+  <title>音声追加</title>
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="mask-icon" href="favicon/icon.svg" color="red">
+  <link rel="icon" sizes="any" mask href="favicon/icon.svg">  
+  <meta name="theme-color" content="red">  
+  <link rel="apple-touch-icon" sizes="57x57" href="favicon/apple-icon-57x57.png">
+  <link rel="apple-touch-icon" sizes="60x60" href="favicon/apple-icon-60x60.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="favicon/apple-icon-72x72.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="favicon/apple-icon-76x76.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="favicon/apple-icon-114x114.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="favicon/apple-icon-120x120.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="favicon/apple-icon-144x144.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="favicon/apple-icon-152x152.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-icon-180x180.png">
+  <link rel="icon" type="image/png" sizes="192x192"  href="favicon/android-icon-192x192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="favicon/favicon-96x96.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+  <link rel="manifest" href="favicon/manifest.json">
+  <meta name="msapplication-TileColor" content="#ffffff">
+  <meta name="msapplication-TileImage" content="favicon/ms-icon-144x144.png">
+  <meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<div id="app">
+  <div id="search_tool" v-bind:class="{ to_update: variable.to_update, duplicated: variable.duplicated }">
+    <div>
+      <textarea v-model="text_of_textarea" rows="4" cols="50"></textarea>
+      <button @click="loadTextArea">Load</button>
+      <div><button @click="reset();loadTextArea()">SKIP</button></div>
+    </div>
+    <div id="row1">
+      <div id="search">
+        <input id="word" v-model="data.word" @keypress.enter="search(data.word)" autocomplete="off" placeholder="単語" autofocus>
+        <template v-if="variable.to_update">({{variable.duplicated_word.kana}})</template>
+        <button @click="search(data.word)" id="search_button">検索</button>
+      </div>
+      <button v-if="variable.to_save||variable.to_update" id="save" @click="save_query">保存</button>
+    </div>
+  <div id="row2">
+    <div id="kana"><input id="kana_edit" v-model="data.kana" placeholder="カナ"></div>
+    <div id="accent"><input id="accent_edit" v-model="data.accent" placeholder="アクセント"></div>
+    <div id="gogen"><input id="gogen_edit" v-model="data.gogen" placeholder="語源"></div>
+    <span v-if="variable.to_save"><input type="checkbox" name="multiple" id="multiple" v-model="variable.multiple" >複</span>
+  </div>
+  <div id="dictionary">
+    <template v-if="variable.meaning_searching">読み込み中...</template>
+    <button 
+      v-for="(meaning, index) in variable.meaning_list" 
+      class="dict_button"
+      @click="select_meaning(index)"
+      v-bind:class="{selected: variable.meaning_selected.includes(index)}">
+        <template 
+          v-if="meaning.gogen">
+          {{meaning.kana}}({{meaning.gogen}})
+        </template>
+        <template v-else>
+          <template v-if="meaning.kanji">
+            {{meaning.kanji}}({{meaning.kana}})
+          </template>
+          <template v-else>
+            {{meaning.kana}}
+          </template>
+        </template>
+    </button>
+  </div>
+  <div id="audio">
+    <template v-for="(audio, index) in variable.audio_list">
+      <button 
+        class="audio_button"
+        @click="play_audio(index)"
+        v-bind:class="{selected: variable.audio_selected.includes(index)}">
+          ▶
+      </button>
+      <button 
+        class="audio_button"
+        @click="select_audio(index)"
+        v-bind:class="{selected: variable.audio_selected.includes(index)}">
+          {{audio.word}}
+      </button>
+    </template>
+    <button v-if="variable.no_forvo" @click="add_forvo();variable.no_forvo=false" style="background:red;color:white">Forvo追加</button> 
+    <template v-if="variable.audio_searching">読み込み中...</template>
+  </div>
+  <div id="ch_dict">
+    <template v-if="variable.chinese_searching">読み込み中...</template>
+    <button 
+      v-for="(chinese, index) in variable.chinese_list" 
+      class="ch_button"
+      @click="select_chinese(index)"
+      v-bind:class="{selected: variable.chinese_selected.includes(index)}">
+        {{chinese.kanji}}{{chinese.kana}}
+    </button>
+  </div>
+  <div id="meaning">
+    <textarea id="meaning_edit" name="content"></textarea>
+  </div>
+  <div id="chinese">
+    <textarea id="chinese_edit" name="content"></textarea>
+  </div>
+  <div id="image" align="center"><canvas id="image_show"></canvas></div>
+  </div>
+  <div id="overlay" v-if="variable.saving" >
+    <div class="circ">
+      <div class="load">
+        Loading...
+      </div>
+      <div class="hands"></div>
+      <div class="body"></div>
+      <div class="head"></div>
+      <div class="eye"></div>
+    </div>
+  </div>
+</div>
+<script src="js/vue.js"></script>
+<script src="js/jquery.min.js"></script>
+<script src="js/jquery-ui.min.js"></script>
+
+<script src="js/froala_editor.min.js"></script>
+<script src="js/codemirror.min.js"></script>
+<script src="js/xml.min.js"></script>
+
+<script src="js/plugins/align.min.js"></script>
+<script src="js/plugins/char_counter.min.js"></script>
+<script src="js/plugins/code_beautifier.min.js"></script>
+<script src="js/plugins/code_view.min.js"></script>
+<script src="js/plugins/colors.min.js"></script>
+<script src="js/plugins/entities.min.js"></script>
+<script src="js/plugins/font_family.min.js"></script>
+<script src="js/plugins/font_size.min.js"></script>
+<script src="js/plugins/fullscreen.min.js"></script>
+<script src="js/plugins/image.min.js"></script>
+<script src="js/plugins/image_manager.min.js"></script>
+<script src="js/plugins/inline_style.min.js"></script>
+<script src="js/plugins/line_breaker.min.js"></script>
+<script src="js/plugins/link.min.js"></script>
+<script src="js/plugins/lists.min.js"></script>
+<script src="js/plugins/paragraph_format.min.js"></script>
+<script src="js/plugins/paragraph_style.min.js"></script>
+<script src="js/plugins/quick_insert.min.js"></script>
+<script src="js/plugins/quote.min.js"></script>
+<script src="js/plugins/table.min.js"></script>
+<script src="js/plugins/url.min.js"></script>
+
+
+<script src="js/credentials.js"></script>
+<script src="js/forvo.js"></script>
+<!-- <script src="js/search_tool.js"></script> -->
+</body>
+</html>

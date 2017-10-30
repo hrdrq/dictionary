@@ -1,0 +1,354 @@
+  @import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css");
+  @import url("codemirror.min.css");
+
+  @import url("jquery-ui.min.css");
+
+  @import url("froala_editor.min.css");
+  @import url("froala_style.min.css");
+
+  @import url("plugins/char_counter.css");
+  @import url("plugins/code_view.css");
+  @import url("plugins/colors.css");
+  @import url("plugins/emoticons.css");
+  @import url("plugins/file.css");
+  @import url("plugins/fullscreen.css");
+  @import url("plugins/image.css");
+  @import url("plugins/image_manager.css");
+  @import url("plugins/line_breaker.css");
+  @import url("plugins/quick_insert.css");
+  @import url("plugins/table.css");
+  @import url("plugins/video.css");
+
+  /*@import url("sweetalert.css");*/
+
+body{
+  font-family: 'Hiragino Kaku Gothic ProN', 'ヒラギノ角ゴ ProN W3', Meiryo, メイリオ, Osaka, 'MS PGothic', arial, helvetica, sans-serif;
+  margin: 0;
+}
+button.dict_button.selected{
+  background-color: lightgreen;
+}
+button.audio_button.selected{
+  background-color: yellow;
+}
+button.ch_button.selected{
+  background-color: lightpink;
+}
+button.example_button.selected{
+  background-color: lightblue;
+}
+.to_update{
+  background-color: wheat
+}
+.duplicated{
+  background-color: lightgrey
+}
+.star_img{
+  display: block;
+  float: left;
+  width: 16px;
+  height: 16px;
+
+  background: url('_star.gif');
+}
+#same_kana{
+  color: white;
+  
+}
+/*#search_tool{
+      display: block;
+      
+      position:fixed;
+      top: 0;
+      left: 0;
+      width:100%;
+    }*/
+  #search {
+/*background-color: #ff8c00;*/
+  margin-bottom: 0;
+  float: left;
+}
+#msg {
+  font-size: 1.5em;
+  clear: both;
+}
+
+  #save {
+  float: left;
+}
+  #image_loader{
+    float:left;
+  }
+  #detail {
+  float: left;
+}
+  #kana {
+  float: left;
+}
+   #kana_edit {
+    width:80%;
+  }
+  #accent {
+  float: left;
+}
+    #accent_edit {
+    width:80%;
+  }
+  #gogen {
+  float: left;
+}
+   #gogen_edit {
+    width:80%;
+  }
+#add_forvo.no_audio {
+  font-size: 1.2em; 
+  color: white;
+  background-color: red;
+}
+  #row2 {
+  clear: both;
+}
+  #row3 {
+  clear: both;
+}
+  #dictionary {
+  clear: both;
+}
+#meaning {
+width : 50% ;
+font-size: 80%;
+float: left;
+}
+
+#chinese{
+width : 50% ;
+font-size: 80%;
+float: left;
+}
+
+#listening_hint_preview {
+  margin-left: 20px
+}
+
+ul.chinese
+{
+  padding: 0;
+}
+ul.chinese>li
+{
+  list-style-type:none;
+}
+
+#audioEditor{
+  margin: 30px 20px 0 20px;
+  text-align: center;
+}
+#audioEditorButtons{
+  margin-top: 20px
+}
+.AEButton{
+  font-size: 1.4em;
+}
+
+#side_bar { 
+   background-color: floralwhite;
+   /*opacity: 0.9;*/
+   width: 160px;
+   height: 80%;
+   position: absolute;
+   /*top: 0;*/
+   right: 0;
+   top: 60px;
+   z-index: 10;
+   overflow-y: scroll;
+   border: 1px solid #000000;
+}
+#toggle_side_bar {
+  background: #9e978e;
+  display: inline-block;
+  position: absolute;
+  right: 160px;
+  top: 240px;
+  height: 60px;
+  width: 30px;
+  border-bottom-left-radius: 60px;
+  border-top-left-radius: 60px;
+  z-index: 20;
+}
+#side_bar > #listening_hint_mobile{
+  font-size: 80%;
+}
+#side_bar > #example_mobile{
+  font-size: 80%;
+}
+#side_/*bar > #example_mobile > ruby > rt {
+  font-size: 20% !important;
+}*/
+#side_bar > button{
+  font-size: 4px !important
+}
+
+/*iphone 6 plus*/
+@media screen and (min-width: 320px) and (max-width: 499px){ 
+  
+
+    #search {
+/*background-color: #ff8c00;*/
+  margin-bottom: 0;
+  width: 50%;
+  float: left;
+}
+#word {
+    width:70%;
+  }
+#search_button{
+  display:none;
+}
+#kana {
+/*background-color: #ff8c00;*/
+  width: 50%;
+  float: left;
+}
+#accent {
+/*background-color: #ff8c00;*/
+  width: 20%;
+  float: left;
+}
+#gogen {
+/*background-color: #ff8c00;*/
+  width: 40%;
+  float: left;
+}
+#detail {
+/*background-color: #ff8c00;*/
+  width: 40%;
+  float: left;
+}
+#meaning {
+width : 100% ;
+font-size: 80%;
+float: none;
+}
+#chinese{
+width : 100% ;
+font-size: 80%;
+float: none;
+}
+#forPhone{
+  width: 100%;
+  display: block;
+  position:fixed;
+  bottom: 0px;
+  z-index:900;
+  background-color: lightgrey;
+}
+#forPhoneRow1 > button{
+  font-size: 1.2em;
+}
+#save {
+  float: none;
+}
+#image_loader{
+  float: none;
+}
+}
+ 
+/*For loading animation*/
+@import url(http://fonts.googleapis.com/css?family=Julius+Sans+One);
+
+#overlay { 
+   background-color: #111;
+   opacity: 0.9;
+   width: 100%;
+   height: 100%;
+   position: absolute;
+   top: 0;
+   left: 0;
+   z-index: 1000;
+}
+
+.eye{
+  width: 20px; height: 8px;
+  background-color: #eee;
+  border-radius:0px 0px 20px 20px;
+  position: relative;
+  top: 40px;
+  left: 10px;
+  box-shadow:  40px 0px 0px 0px #eee;              
+}
+
+.head{
+  -webkit-backface-visibility: hidden;
+  position: relative;
+  margin: -250px auto;
+  width: 80px; height: 80px;
+  background-color: #111;
+  border-radius:50px;
+  box-shadow: inset -4px 2px 0px 0px #eee;
+    -webkit-animation:node 1.5s infinite alternate;
+  -webkit-animation-timing-function:ease-out;
+}
+.body{ 
+  position: relative;
+  margin: 90px auto;
+  width: 140px; height: 120px;
+  background-color: #111;
+  border-radius: 50px/25px ;
+  box-shadow: inset -5px 2px 0px 0px #eee;
+  -webkit-animation:node2 1.5s infinite alternate;
+  -webkit-animation-timing-function:ease-out;  
+}
+
+  @-webkit-keyframes node 
+      {
+         0%{ top:0px; }
+         50%{ top:10px; }
+         100% { top:0px;} 
+       }
+
+  @-webkit-keyframes node2
+      {
+         0%{ top:-5px; }
+         50%{ top:10px; }
+         100% { top:-5px;} 
+       }
+
+.circ{
+  -webkit-backface-visibility: hidden;
+   margin: 0px auto;
+  width: 180px; height: 180px;
+  background-color: #111;
+  border-radius: 0px 0px 50px 50px;
+  position: relative;
+  z-index: -1;  
+  left: 0%;
+  top: 20%;
+  overflow: hidden;
+}
+
+.hands{
+  -webkit-backface-visibility: hidden;
+  margin-top: 140px;
+  width: 120px;height: 120px;
+  position: absolute;
+  background-color: #111;
+  border-radius:20px;
+  box-shadow:-1px -4px 0px 0px #eee;
+  -webkit-transform:rotate(45deg);
+  top:75%;left: 16%;
+  z-index: 1;
+  -webkit-animation:node2 1.5s infinite alternate;
+  -webkit-animation-timing-function:ease-out;
+}
+
+.load{  position: absolute;
+  width: 100px; height: 20px;
+   margin: -10px auto;
+  -webkit-font-smoothing: antialiased;
+  font-family: 'Julius Sans One', sans-serif;
+  font-size:30px;
+  font-weight:400;
+  color:#eee;
+  left: 10%;
+  top: 5%;
+}
