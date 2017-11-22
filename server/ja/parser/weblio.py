@@ -9,7 +9,7 @@ headers = {
 
 
 class Weblio(object):
-    URL = "http://www.weblio.jp/content/{word}"
+    URL = "https://www.weblio.jp/content/{word}"
 
     def search(self, word):
         response = requests.get(self.URL.format(word=word), headers=headers)
