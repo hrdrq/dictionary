@@ -80,6 +80,11 @@ class Forvo(object):
                         r"(.*) の発音").search(ja_header.text()).group(1)
                     for i in locale('span.play'):
                         i = PyQuery(i)
+                        text = i.parents('li').eq(0).text()
+                        user = None
+                        match = re.search("発音したユーザ: (.*) \(", text)
+                        if match:
+                            user = match.group(1)
                         onclick = i.attr('onclick')
                         match = re.compile(
                             r"Play\(.*,'(.*)',.*,.*,.*,.*,.*\)").search(onclick)
@@ -87,7 +92,7 @@ class Forvo(object):
                             code = match.group(1)
                             url = 'https://audio00.forvo.com/mp3/' + \
                                 self.base64_decode(code)
-                            self.results.append({'word': word, 'url': url, 'word_id': word_id})
+                            self.results.append({'word': word, 'url': url, 'word_id': word_id, 'user': user})
 
     def search(self, word):
         response = requests.get(self.URL.format(word=word), headers=headers)
