@@ -41,20 +41,19 @@ class JAHandler(tornado.web.RequestHandler):
             'method': 'GET'
         }
         if path.find('/ja/search') != -1:
-            res = search_handler(event)
-            return(res)
+            return search_handler(event)
         elif path.find('/ja/save') != -1:
-            return(save_handler(event))
+            return save_handler(event)
         elif path.find('/ja/suggest') != -1:
-            return(suggest_handler(event))
+            return suggest_handler(event)
 
     @tornado.gen.coroutine
     def get(self):
         result = yield self.get_()
-        # print('xxxxx', result)
         self.write(result)
 
-    def post(self):
+    @tornado.concurrent.run_on_executor
+    def post_(self):
         path = self.request.path
         event = {
             'queryParams': '',
@@ -63,9 +62,15 @@ class JAHandler(tornado.web.RequestHandler):
             'method': 'POST'
         }
         if path.find('/ja/save') != -1:
-            self.write(save_handler(event))
+            return save_handler(event)
 
-    def put(self):
+    @tornado.gen.coroutine
+    def post(self):
+        result = yield self.post_()
+        self.write(result)
+
+    @tornado.concurrent.run_on_executor
+    def put_(self):
         path = self.request.path
         event = {
             'queryParams': '',
@@ -74,4 +79,9 @@ class JAHandler(tornado.web.RequestHandler):
             'method': 'PUT'
         }
         if path.find('/ja/update') != -1:
-            self.write(save_handler(event))
+            return save_handler(event)
+
+    @tornado.gen.coroutine
+    def put(self):
+        result = yield self.put_()
+        self.write(result)
