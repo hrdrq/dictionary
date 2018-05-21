@@ -99,6 +99,8 @@ class Forvo(object):
         doc = PyQuery(response.text)
         page_urls = ['https://ja.forvo.com' +
                      PyQuery(x).attr('href') for x in doc('nav.pagination')('a.num')]
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         if page_urls:
             # rs = (grequests.get(u) for u in page_urls)
             # docs = [PyQuery(x.text) for x in grequests.map(rs)]
