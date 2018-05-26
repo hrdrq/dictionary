@@ -62,6 +62,8 @@ def image_search(word):
             results.append(res)
         return results
             
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     loop = asyncio.get_event_loop()
     results = loop.run_until_complete(do_request())
 
