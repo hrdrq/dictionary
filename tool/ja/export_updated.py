@@ -28,7 +28,7 @@ update_db = False
 class Export(object):
 
     def __init__(self):
-        self.sql = connect_db('54.65.181.140')
+        self.sql = connect_db(DB_HOST)
         self.s3 = connect_s3()
         self.today = datetime.datetime.now().strftime('%Y%m%d') + 'u'
         self.writer_normal = None
