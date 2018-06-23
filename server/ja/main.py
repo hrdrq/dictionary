@@ -1,5 +1,6 @@
 # encoding: utf-8
-# import concurrent.futures
+# 日本語辞書のメインファイル
+
 import logging
 import requests
 
@@ -8,15 +9,18 @@ import tornado.web
 import tornado.gen
 import tornado.concurrent
 
-from .search_handler import search_handler, suggest_handler
+from .search_handler import search_handler
 from .save_handler import save_handler
-# from suggest_handler import suggest_handler
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-
+# @tornado.concurrent.run_on_executorと
+# @tornado.gen.coroutineは
+# requestsの処理を並行させるために追加
 class JAHandler(tornado.web.RequestHandler):
+    # 非同期処理があるので追加した
+    # thread poolは５くらいがあれば大丈夫だと思う
     executor = tornado.concurrent.futures.ThreadPoolExecutor(5)
 
     def set_default_headers(self):
@@ -63,6 +67,7 @@ class JAHandler(tornado.web.RequestHandler):
         }
         if path.find('/ja/save') != -1:
             return save_handler(event)
+
 
     @tornado.gen.coroutine
     def post(self):

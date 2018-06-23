@@ -1,4 +1,12 @@
 # encoding: utf-8
+# データベースに入ってる新しく追加された単語をcsv、音声、画像の形にエクスポートする
+# mp3gainを使い、音量を統一
+# soxを使い、ファイルの前後の無音の部分をtrimする
+# （mp3gainとsoxは事前にインストールする必要がある）
+# 使い方：
+# python export.py           →エクスポート
+# python export.py update_db →「新しい単語」というフラグをリセット
+
 from __future__ import print_function, unicode_literals
 import sys
 sys.path.append('../../server')
@@ -16,7 +24,6 @@ from sqlalchemy import func, or_, and_
 from sqlalchemy.orm import aliased
 
 from credentials import *
-# DB_HOST = '13.112.211.132'
 from db_tables import DictJA, DictJADetail
 from utils import result_parse, connect_db, connect_s3, JSONEncoder
 
@@ -111,9 +118,8 @@ class Export(object):
                 folder = "./{}/media/".format(self.today)
                 os.chdir(folder)
                 os.mkdir('o')
-                os.system('for f in *.mp3; do sox $f o/$f reverse silence 1 0.01 0.5% reverse silence 1 0.01 0.5%; done')
+                os.system('for f in *.mp3; do sox $f o/$f reverse silence 1 0.01 -55d reverse silence 1 0.01 -55d; done')
                 os.system('mp3gain -r o/*.mp3')
-                os.system('mp3gain -r forvo/*.mp3')
         else:
             print('新しい単語がない')
 
@@ -129,55 +135,11 @@ class Export(object):
         except Exception as e:
             print("例外args:", e.args)
 
-    # def s3_download_dir(self, dist, root_dist, local='/tmp', bucket='dict-ja'):
-    #     paginator = self.s3.meta.client.get_paginator('list_objects')
-    #     for result in paginator.paginate(Bucket=bucket, Delimiter='/', Prefix=dist):
-    #         if result.get('CommonPrefixes') is not None:
-    #             for subdir in result.get('CommonPrefixes'):
-    #                 self.s3_download_dir(subdir.get(
-    #                     'Prefix'), root_dist, local, bucket)
-    #         if result.get('Contents') is not None:
-    #             for file in result.get('Contents'):
-    #                 if file.get('Key').endswith('/'):
-    #                     continue
-
-    #                 local_file_name = local + os.sep + \
-    #                     file.get('Key').replace(root_dist, '')
-    #                 if not os.path.exists(os.path.dirname(local_file_name)):
-    #                     os.makedirs(os.path.dirname(local_file_name))
-    #                 self.s3.meta.client.download_file(
-    #                     bucket, file.get('Key'), local_file_name)
-
-    # def s3_move_files(self, dist, root_dist, bucket='dict-ja'):
-    #     paginator = self.s3.meta.client.get_paginator('list_objects')
-    #     for result in paginator.paginate(Bucket=bucket, Delimiter='/', Prefix=dist):
-    #         if result.get('CommonPrefixes') is not None:
-    #             for subdir in result.get('CommonPrefixes'):
-    #                 self.s3_move_files(subdir.get(
-    #                     'Prefix'), root_dist, bucket)
-    #         if result.get('Contents') is not None:
-    #             for file in result.get('Contents'):
-    #                 if file.get('Key').endswith('/'):
-    #                     continue
-    #                 print(file.get('Key'))
-    #                 self.s3.Object(bucket, file.get('Key').replace(root_dist, '')).copy_from(
-    #                     CopySource=bucket + '/' + file.get('Key'))
-
-    # def s3_export(self):
-    #     media_folder = './{}/media'.format(self.today)
-    #     # self.s3_download_dir('new/', 'new/', media_folder)
-    #     self.s3_move_files('new/', 'new/', '/')
-
 
 if __name__ == '__main__':
     argvs = sys.argv
     if(len(argvs) > 1 and argvs[1] == 'update_db'):
         update_db = True
     print("update_db: {}".format(update_db))
-    # sys.exit()
     export = Export()
-    # export.s3_move_files('new/', '/')
     export.export()
-    # print(json.dumps(export.s3_export(), indent=4,
-    #                  ensure_ascii=False, cls=JSONEncoder))
-    # print(datetime.datetime.now().strftime('%Y%m%d'))

@@ -1,4 +1,13 @@
 # encoding: utf-8
+# 検索処理（日本語、中国語、音声、例文、画像）
+# 各パーサーを分岐し、classを定義
+# 例：
+# /ja/search/query?word=テスト
+# /ja/search/meaning?word=テスト
+# /ja/search/audio/naver?word=テスト
+
+# クライアントは最初にqueryして、同じ単語がなかったら、
+# 他の検索を全部投げる
 
 import logging
 from sqlalchemy import create_engine, func, or_, and_
@@ -9,9 +18,9 @@ from .parser.hujiang import Hujiang
 from .parser.naver import Naver
 from .parser.yourei import Yourei
 from .parser.forvo import Forvo
-from .db_tables import DictJA, Example
+from .db_tables import DictJA
 from .image_search import image_search
-# import tables
+
 import sys
 sys.path.append('../../')
 from utils import result_parse, connect_db
@@ -20,7 +29,7 @@ from utils import result_parse, connect_db
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-
+# データベースにクエリし、同じ単語がある場合、「duplicated」を返す
 class Query(object):
 
     def __init__(self):
@@ -31,17 +40,10 @@ class Query(object):
             .filter(DictJA.word == word)\
             .first()
         if res:
-            print(res.need_update)
-            if res.need_update:
-                return {
-                    'status': 'need_update',
-                    'result': result_parse(res)
-                }
-            else:
-                return {
-                    'status': 'duplicated',
-                    'result': result_parse(res)
-                }
+            return {
+                'status': 'duplicated',
+                'result': result_parse(res)
+            }
         else:
             return {
                 'status': 'success',
@@ -51,24 +53,8 @@ class Query(object):
         self.sql.close()
 
 
-def search_example_from_db(word):
-    sql = connect_db()
-    res = sql.query(Example)\
-        .filter(Example.word.has(word=word)).all()
-    if res:
-        results = [{
-            "sentence_plain": r.sentence_plain,
-            "listening_hint": r.listening_hint,
-            "sentence": r.sentence
-        } for r in res]
-        return {"status": 'success', "results": results}
-    else:
-        return {"status": 'error', "error_detail": "Nothing found."}
-
-
 def search_handler(event):
     params = event['queryParams']
-    # method = event['method']
     path = event['path']
     print("path", path)
     if path == '/ja/search/query':
@@ -88,8 +74,6 @@ def search_handler(event):
         forvo = Forvo()
         return forvo.request(params['word_id'].decode('utf-8'))
     elif path == '/ja/search/example':
-        # naver = Naver()
-        # return naver.example(params['word'].decode('utf-8'))
         yourei = Yourei()
         res = yourei.search(params['word'].decode(
             'utf-8'), 20, int(params.get('offset', 1)))
@@ -106,45 +90,5 @@ def search_handler(event):
 
     if params.get('word'):
         return search.search(params['word'].decode('utf-8'))
-    else:
-        return {'error': True, 'message': 'The param "word" is needed.'}
-
-
-import requests
-URL = 'https://dictionary.goo.ne.jp/suggest/all/{word}/{limit}/'
-
-
-class Suggest(object):
-
-    def search(self, word, limit=10):
-        headers = {
-            'Cookie': 'NGUserID=x; DICTUID=x',
-        }
-        res = requests.get(URL.format(word=word, limit=limit),
-                           headers=headers).text
-
-        # print(res.encode('utf-8'))
-        # res = res.encode('utf-8')
-        # print(type(res))
-        # print(res.encoding)
-        res = res.split('\t')
-        count = int(res[0])
-        if count > 0:
-            return {"status": 'success', "results": res[2:]}
-        else:
-            return {"status": 'error', "error_detail": "Nothing found."}
-        # print(res)
-        # return res
-        # return {"status": 'success', "results": results}
-
-
-def suggest_handler(event):
-    params = event['queryParams']
-    # method = event['method']
-    path = event['path']
-
-    if params.get('word'):
-        suggest = Suggest()
-        return suggest.search(params['word'].decode('utf-8'), limit=params.get('limit', 10))
     else:
         return {'error': True, 'message': 'The param "word" is needed.'}

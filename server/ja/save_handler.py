@@ -11,10 +11,10 @@ import jaconv
 from .db_tables import DictJA, DictJADetail
 from credentials import *
 from utils import result_parse, connect_db, connect_s3
-from .rhinospike import add_sentence_one_time
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+logging.getLogger('boto3').setLevel(logging.WARNING)
 
 
 class Save(object):
@@ -54,26 +54,15 @@ class Save(object):
             self.s3.Object(BUCKET_NAME, 'image/' + image_name).put(
                 Body=base64.b64decode(data['image']))
             data['image'] = image_name
-        # import用
-        if 'audio_list' in data:
-            data['audio'] = ','.join(data.pop('audio_list'))
-        # import用
-        if 'image_list' in data:
-            data['image'] = ','.join(data.pop('image_list'))
         if 'kana' in data:
             data['kana'] = jaconv.kata2hira(
                 data['kana']).replace(' ', '').replace('　', '')
         data_ = {'word': data.pop('word')}
-        # import用
+        data_['new'] = True
+
         for key in ['need_update', 'type', 'addReverse']:
             if key in data:
                 data_[key] = data.pop(key)
-        data_['new'] = True
-
-        if data.get('example'):
-            # if not add_sentence_one_time(data['example']):
-            #     data['need_add_example_audio'] = True
-            data['need_add_example_audio'] = True
 
         # テーブルinstance作成
         dict_ja_detail = DictJADetail(**data)
@@ -99,9 +88,6 @@ class Save(object):
         if 'kana' in data:
             data['kana'] = jaconv.kata2hira(
                 data['kana']).replace(' ', '').replace('　', '')
-        if data.get('example'):
-            if raw.detail.example != data['example']:
-                data['need_add_example_audio'] = True
         if 'image' in data:
             image_name = str(uuid.uuid4()) + '.png'
             self.s3.Object(BUCKET_NAME, 'image/' + image_name).put(
@@ -110,7 +96,6 @@ class Save(object):
         for key in data:
             setattr(raw.detail, key, data[key])
         raw.has_updated = True
-        # raw.new = True
 
         # sessionデータをMySQLに更新する
         self.sql.commit()

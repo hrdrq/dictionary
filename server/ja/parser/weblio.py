@@ -1,4 +1,6 @@
 # encoding: utf-8
+# 日本語の意味を取得
+# PyQueryでスクレイピング
 
 import requests
 import re
@@ -7,14 +9,20 @@ from pyquery import PyQuery
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36'}
 
-
+# Wサイトにいろんな種類の辞書があって、
+# 普通の辞書（NetDicHead）、実用辞書（Jtnhj）、IT辞書（Binit）、wikipedia（Wkpja）などを取得
+# word：単語
+# kana：ふりがな
+# gogen：語源
+# kanji：漢字
+# accent：アクセント
 class Weblio(object):
-    URL = "https://www.weblio.jp/content/{word}"
+    URL = "http://www.weblio.jp/content/{word}"
 
     def search(self, word):
         response = requests.get(self.URL.format(word=word), headers=headers)
-        # print(response.text)
         text = response.text
+        # たまにhtmlに「𥝱」があって、処理はエラーが発生する
         text = text.replace('𥝱', '')
 
         doc = PyQuery(text)
@@ -24,6 +32,7 @@ class Weblio(object):
             for head in normal_dict:
                 result = {'word': word, 'type': 'normal'}
                 head = PyQuery(head)
+                # 括弧（【】）がある場合、漢字か外来語は入ってる
                 match_kakko = re.compile(r"【(.*)】").search(head.text())
                 if match_kakko:
                     kakko = match_kakko.group(1)
@@ -49,10 +58,11 @@ class Weblio(object):
                     a = PyQuery(a)
                     a.replaceWith(a.html())
                 result['meaning'] = body.html()
+                # 単語自体は仮名のみの場合
                 if 'kana' not in result:
                     result['kana'] = word
                 results.append(result)
-        # else:
+
         Jitsu_dict = doc("div.Jtnhj")
         if Jitsu_dict:
             result = {'word': word, 'type': 'Jitsu'}
@@ -75,13 +85,12 @@ class Weblio(object):
                 meaning.html(Jitsu_dict('.AM').nextAll())
             else:
                 meaning = Jitsu_dict
-            # print(Jitsu_dict('.AM'))
-            # meaning.html(Jitsu_dict('.AM').nextAll())
             for a in meaning('a'):
                 a = PyQuery(a)
                 a.replaceWith(a.html())
             result['meaning'] = meaning.text()
             results.append(result)
+
         IT_dict = doc('div.Binit')
         if IT_dict:
             result = {'word': word, 'type': 'IT'}

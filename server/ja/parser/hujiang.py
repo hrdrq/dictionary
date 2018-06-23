@@ -1,4 +1,6 @@
 # encoding: utf-8
+# Hサイトで中国語の意味を取得
+# PyQueryでスクレイピング
 
 import requests
 import re

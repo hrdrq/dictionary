@@ -1,16 +1,23 @@
 # encoding: utf-8
-from __future__ import print_function, unicode_literals
+# サーバのルートファイル。
+# サーバはtornadoを使ってる
+# データベースはMySQLを使い、ライブラリはsqlalchemyを使ってる
+# URLのパスを判断し、使うハンドラーを分岐する
+# 機密情報はcredentials.pyに書いてある。gitにコミットしない
 
+from __future__ import print_function, unicode_literals
 import os
 
 import requests
 import tornado.ioloop
 import tornado.web
 
+# 日本語辞書
 from ja.main import JAHandler
+# 韓国語辞書（メンテナンスしてない）
 from ko.main import KOHandler
 
-
+# CORSのないサイトのファイルをダウンロードするためのプロクシ
 def proxy(event):
     url = event['queryParams'].get('url')
     if not url:
@@ -21,8 +28,9 @@ def proxy(event):
         'data': r.content
     }
 
+# 今はプロクシの場合だけ
 class MainHandler(tornado.web.RequestHandler):
-
+    
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
         self.set_header("Access-Control-Allow-Methods", "GET,PUT,POST,OPTIONS")
@@ -36,6 +44,7 @@ class MainHandler(tornado.web.RequestHandler):
 
     def get(self):
         path = self.request.path
+        print('path', path)
         event = {
             'queryParams': {k: v[0] for k, v in self.request.arguments.items()},
             'path': path,

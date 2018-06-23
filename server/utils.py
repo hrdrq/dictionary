@@ -3,6 +3,7 @@ from __future__ import print_function, unicode_literals
 import json
 import decimal
 import datetime
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import boto3
@@ -58,8 +59,6 @@ def result_parse_ko(data):
             result[k] = v.strftime(format('%Y-%m-%d %H:%M:%S'))
         elif type(v) == datetime.date:
             result[k] = v.strftime(format('%Y-%m-%d'))
-    # result = {k: v for dic in [
-    #         result, detail] for k, v in dic.items()}
     return result
 
 

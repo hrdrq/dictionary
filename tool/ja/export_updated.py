@@ -1,4 +1,7 @@
 # encoding: utf-8
+# 更新された単語のバージョン
+# TODO：export.pyに統合
+
 from __future__ import print_function, unicode_literals
 import sys
 sys.path.append('../../server')
@@ -15,7 +18,6 @@ from sqlalchemy import func, or_, and_
 from sqlalchemy.orm import aliased
 
 from credentials import *
-# DB_HOST = '13.112.211.132'
 from db_tables import DictJA, DictJADetail
 from utils import result_parse, connect_db, connect_s3, JSONEncoder
 
@@ -30,7 +32,7 @@ class Export(object):
     def __init__(self):
         self.sql = connect_db(DB_HOST)
         self.s3 = connect_s3()
-        self.today = datetime.datetime.now().strftime('%Y%m%d') + 'u'
+        self.today = datetime.datetime.now().strftime('%Y%m%d') + '_'
         self.writer_normal = None
         self.writer_IT = None
         self.writer_name = None
@@ -145,10 +147,5 @@ if __name__ == '__main__':
     if(len(argvs) > 1 and argvs[1] == 'update_db'):
         update_db = True
     print("update_db: {}".format(update_db))
-    # sys.exit()
     export = Export()
-    # export.s3_move_files('new/', '/')
     export.export()
-    # print(json.dumps(export.s3_export(), indent=4,
-    #                  ensure_ascii=False, cls=JSONEncoder))
-    # print(datetime.datetime.now().strftime('%Y%m%d'))

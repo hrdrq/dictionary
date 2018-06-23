@@ -1,4 +1,7 @@
 # encoding: utf-8
+# MySQLデータベースのスキーマを定義
+# dict_jaテーブルとdict_ja_detailテーブルは一対多の関係
+
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import (
     Boolean, Column, create_engine, Integer, MetaData, String, Table, ForeignKey, text
@@ -19,7 +22,6 @@ class DictJA(Base):
     word = Column(String)
     new = Column(BOOLEAN, default=None)
     has_updated = Column(BOOLEAN, default=None)
-    need_update = Column(BOOLEAN, default=None)
     type = Column(String, default=None)
     detail_id = Column(INTEGER(11, unsigned=True), ForeignKey(
         'dict_ja_detail.id'), nullable=False, index=True)
@@ -45,16 +47,4 @@ class DictJADetail(Base):
     examples = Column(TEXT, default=None)
     listening_hint = Column(TEXT, default=None)
     example_audio = Column(String, default=None)
-    need_add_example_audio = Column(BOOLEAN, default=None)
     forvo = Column(BOOLEAN, default=None)
-
-class Example(Base):
-    __tablename__ = 'example'
-    id = Column(INTEGER(11, unsigned=True),
-                primary_key=True, autoincrement=True)
-    sentence = Column(String)
-    sentence_plain = Column(String)
-    listening_hint = Column(String)
-    word_id = Column(INTEGER(11, unsigned=True), ForeignKey(
-        'dict_ja.id'), nullable=False, index=True)
-    word = relationship("DictJA")

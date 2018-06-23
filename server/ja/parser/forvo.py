@@ -1,4 +1,9 @@
 # encoding: utf-8
+# Fサイトで音声を取得と、単語発音を依頼
+# PyQueryでスクレイピング
+# word：単語
+# user：発音したユーザのID
+# word_id：単語のID（既存する単語を別のユーザに発音してもらう時に使う）
 
 import logging
 import re
@@ -16,6 +21,8 @@ from credentials import FORVO_USER, FORVO_PW
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+# FサイトにあったJavaScriptソースコード。
+# 音声ファイルのURLをdecrypt用
 JS = '''function base64_decode(a) {
     var b, c, d, e, f, g, h, i, j = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
         k = ac = 0,
@@ -40,7 +47,10 @@ JS = '''function base64_decode(a) {
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36'}
 
-
+# 最初はsearchを読んで、各ページのURLを取得し、
+# 並行処理で各ページの情報を取得
+# addメソッド：新しい単語として、発音を依頼する
+# requestメソッド：既存する単語を別のユーザに発音してもらう
 class Forvo(object):
     URL = 'https://ja.forvo.com/search/{word}/ja/'
 
@@ -63,9 +73,7 @@ class Forvo(object):
     def parse_items(self, urls):
         loop = asyncio.get_event_loop()
         docs = loop.run_until_complete(self.do_request(urls))
-        # rs = (grequests.get(u) for u in urls)
         for item_response_body in docs:
-            # item_response_body = item_response.text
             word_id = None
             match = re.search("notSatisfied(Lang)?\( ?'(\d+)' ?[,\)]", item_response_body)
             if match:
@@ -74,7 +82,6 @@ class Forvo(object):
             for locale in item_doc("article.pronunciations"):
                 locale = PyQuery(locale)
                 ja_header = locale('em[id=ja]')
-                # print('ja_header', ja_header)
                 if ja_header:
                     word = re.compile(
                         r"(.*) の発音").search(ja_header.text()).group(1)
@@ -102,9 +109,6 @@ class Forvo(object):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         if page_urls:
-            # rs = (grequests.get(u) for u in page_urls)
-            # docs = [PyQuery(x.text) for x in grequests.map(rs)]
-            # docs.append(doc)
             loop = asyncio.get_event_loop()
             docs = loop.run_until_complete(self.do_request(page_urls))
             docs.append(doc)
@@ -112,7 +116,6 @@ class Forvo(object):
             docs = [doc]
         urls = [PyQuery(x).attr('href') for doc in docs for x in doc(
             "article.search_words")("li.list-words")("a.word")]
-        # print('urls', urls)
         self.parse_items(urls)
 
         if self.results:
@@ -121,11 +124,16 @@ class Forvo(object):
             return {"status": 'error', "error_detail": "Nothing found."}
 
     def add(self, word):
+        # 76は日本語のコード
         url = "https://ja.forvo.com/word-add/{word}?word={word}&id_lang=76".format(
             word=word)
+
+        # ログイン処理
         s = requests.Session()
         s.post('https://ja.forvo.com/login/',
                data={'login': FORVO_USER, 'password': FORVO_PW}, headers=headers)
+
+        # 依頼処理
         res = s.get(url)
         if res.status_code == 200:
             return {"status": 'success'}
@@ -133,13 +141,17 @@ class Forvo(object):
             return {"status": 'error', "error_detail": res.status_code}
 
     def request(self, word_id):
+        # 76は日本語のコード
         url = "https://ja.forvo.com/notsatisfied/?idWord={word_id}&idLang=76".format(
             word_id=word_id)
+
+        # ログイン処理
         s = requests.Session()
         s.post('https://ja.forvo.com/login/',
                data={'login': FORVO_USER, 'password': FORVO_PW}, headers=headers)
+        
+        # 依頼処理
         res = s.get(url)
-        print(url)
         if res.status_code == 200:
             return {"status": 'success'}
         else:
