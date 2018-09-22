@@ -12,7 +12,7 @@ import js2py
 from pyquery import PyQuery
 import requests
 import asyncio
-
+import time
 
 import sys
 sys.path.append('../../../')
@@ -62,12 +62,18 @@ class Forvo(object):
 
     @staticmethod
     async def do_request(urls):
+        def requests_get_wrapper(url):
+            try:
+                return requests.get(url)
+            except :
+                return None
         results = []
         loop = asyncio.get_event_loop()
         for url in urls:
-            req = loop.run_in_executor(None, requests.get, url)
+            req = loop.run_in_executor(None, requests_get_wrapper, url)
             res = await req
-            results.append(res.text)
+            if res:
+                results.append(res.text)
         return results
 
     def parse_items(self, urls):
@@ -125,8 +131,9 @@ class Forvo(object):
 
     def add(self, word):
         # 76は日本語のコード
-        url = "https://ja.forvo.com/word-add/{word}?word={word}&id_lang=76".format(
-            word=word)
+        # url = "https://ja.forvo.com/word-add/{word}?word={word}&id_lang=76".format(
+        #     word=word)
+        url = "https://ja.forvo.com/word-add/"
 
         # ログイン処理
         s = requests.Session()
@@ -134,11 +141,20 @@ class Forvo(object):
                data={'login': FORVO_USER, 'password': FORVO_PW}, headers=headers)
 
         # 依頼処理
-        res = s.get(url)
-        if res.status_code == 200:
-            return {"status": 'success'}
-        else:
-            return {"status": 'error', "error_detail": res.status_code}
+        # res = s.get(url)
+        # if res.status_code == 200:
+        #     return {"status": 'success'}
+        # else:
+        #     return {"status": 'error', "error_detail": res.status_code}
+        res = s.post(url, data={
+            "word": word,
+            "id_lang": "76",
+            "tags": "",
+            "current_tags": "",
+            "modify": "0",
+            "is_phrase": "0"
+        })
+        return {"status": 'success'}
 
     def request(self, word_id):
         # 76は日本語のコード
