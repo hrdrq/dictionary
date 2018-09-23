@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 import os
 import asyncio
@@ -61,7 +62,7 @@ def image_search(word):
             res = await req
             results.append(res)
         return results
-            
+
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     loop = asyncio.get_event_loop()
