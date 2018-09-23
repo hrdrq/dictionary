@@ -22,7 +22,7 @@ async def queue_execution(arg_urls, callback, parallel=2):
 
     async def fetch(q):
         def do_req():
-            return 
+            return
         while not q.empty():
             u = await q.get()
             future = loop.run_in_executor(None, requests.get, u)
@@ -81,7 +81,7 @@ def image_search(word):
         try:
             img = Image.open(BytesIO(r.content))
         except Exception as e:
-            print("Image.open例外:", e.args)
+            print("Image.open Error:", e.args)
             continue
         # img = Image.open("4.png")
         width, height = img.size
