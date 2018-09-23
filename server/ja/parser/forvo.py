@@ -13,6 +13,8 @@ from pyquery import PyQuery
 import requests
 import asyncio
 import time
+import pdb
+debug = pdb.set_trace
 
 import sys
 sys.path.append('../../../')
@@ -87,7 +89,8 @@ class Forvo(object):
             item_doc = PyQuery(item_response_body)
             for locale in item_doc("article.pronunciations"):
                 locale = PyQuery(locale)
-                ja_header = locale('em[id=ja]')
+                ja_header = locale('header[id=ja] em')
+                # debug()
                 if ja_header:
                     word = re.compile(
                         r"(.*) の発音").search(ja_header.text()).group(1)
@@ -158,17 +161,24 @@ class Forvo(object):
 
     def request(self, word_id):
         # 76は日本語のコード
-        url = "https://ja.forvo.com/notsatisfied/?idWord={word_id}&idLang=76".format(
-            word_id=word_id)
+        # url = "https://ja.forvo.com/notsatisfied/?idWord={word_id}&idLang=76".format(
+        #     word_id=word_id)
+        url = "https://ja.forvo.com/notsatisfied/"
 
         # ログイン処理
         s = requests.Session()
         s.post('https://ja.forvo.com/login/',
                data={'login': FORVO_USER, 'password': FORVO_PW}, headers=headers)
-        
+
         # 依頼処理
-        res = s.get(url)
-        if res.status_code == 200:
-            return {"status": 'success'}
-        else:
-            return {"status": 'error', "error_detail": res.status_code}
+        # res = s.get(url)
+        # if res.status_code == 200:
+        #     return {"status": 'success'}
+        # else:
+        #     return {"status": 'error', "error_detail": res.status_code}
+        res = s.post(url, data={
+            "f": "requestPronounciation",
+            "idLang": "76",
+            "idWord": str(word_id)
+        })
+        return {"status": 'success'}
