@@ -131,7 +131,7 @@ class Export(object):
             os.makedirs(os.path.dirname(local_file_name))
         try:
             self.s3.meta.client.download_file(
-                'dict-ja', file_name, local_file_name)
+                BUCKET_NAME, file_name, local_file_name)
         except Exception as e:
             print("例外args:", e.args)
 
