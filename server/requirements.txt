@@ -8,3 +8,4 @@ jaconv
 tornado
 boto3
 mtranslate
+pillow
