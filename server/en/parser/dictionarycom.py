@@ -28,6 +28,10 @@ class Dictionarycom(object):
 
         for def_div in divs:
             def_div = PyQuery(def_div)
+            # 単語
+            word = def_div('h1,h2').text()
+            # 単語
+
             # 発音
             pron = def_div('.pron-ipa-content').text()
             if pron == '':
@@ -56,10 +60,10 @@ class Dictionarycom(object):
                     meaning_div = PyQuery(meaning_div)
                     label = meaning_div('.luna-label')
                     if label:
-                        print('xxx', label.text())
+                        # print('xxx', label.text())
                         x = label.text()
                         meaning_div('.luna-labset').replaceWith(x)
-                        print(meaning_div)
+                        # print(meaning_div)
                     text = meaning_div.children('span').clone().children().remove().end().text()
                     meaning = dict(text=text)
                     example = meaning_div('.luna-example').text()
@@ -78,11 +82,15 @@ class Dictionarycom(object):
             # print(len(definitions))
             # 定義
             results.append(dict(
+                word=word,
                 pron=pron,
                 sound=sound,
                 definitions=definitions
             ))
-        return results
+        if results:
+            return {"status": 'success', "results": results}
+        else:
+            return {"status": 'error', "error_detail": "Nothing found."}
 
 if __name__ == '__main__':
     import json

@@ -16,12 +16,13 @@ import tornado.web
 from ja.main import JAHandler
 # 韓国語辞書（メンテナンスしてない）
 from ko.main import KOHandler
+from en.main import ENHandler
 
 # CORSのないサイトのファイルをダウンロードするためのプロクシ
 def proxy(event):
     url = event['queryParams'].get('url')
     if not url:
-        return 
+        return
     r = requests.get(url)
     return {
         'Content-Type': r.headers['Content-Type'],
@@ -30,7 +31,7 @@ def proxy(event):
 
 # 今はプロクシの場合だけ
 class MainHandler(tornado.web.RequestHandler):
-    
+
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
         self.set_header("Access-Control-Allow-Methods", "GET,PUT,POST,OPTIONS")
@@ -64,6 +65,7 @@ settings = {"debug": True}
 application = tornado.web.Application([
     (r"/ja/.*", JAHandler),
     (r"/ko/.*", KOHandler),
+    (r"/en/.*", ENHandler),
     (r"/.*", MainHandler)
 ], static_path=os.path.join(os.getcwd(),  "static"), **settings)
 

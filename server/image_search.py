@@ -33,11 +33,11 @@ async def queue_execution(arg_urls, callback, parallel=2):
     return await asyncio.wait(tasks)
 
 
-def image_search(word):
+def image_search(word, lang='ja'):
 
     # try:
     response = requests.get(
-        'https://www.googleapis.com/customsearch/v1?key={key}&cx={cx}&searchType=image&q={word}&hl=ja'.format(key=GCS_KEY, cx=GCS_CX, word=word))
+        'https://www.googleapis.com/customsearch/v1?key={key}&cx={cx}&searchType=image&q={word}&hl={lang}'.format(key=GCS_KEY, cx=GCS_CX, word=word, lang=lang))
     urls = [i['link'] for i in response.json()['items']]
 
     # loop = asyncio.get_event_loop()

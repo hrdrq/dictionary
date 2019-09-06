@@ -16,8 +16,8 @@ import time
 import pdb
 debug = pdb.set_trace
 
-import sys
-sys.path.append('../../../')
+# import sys
+# sys.path.append('../../../')
 from credentials import FORVO_USER, FORVO_PW
 
 logger = logging.getLogger()
@@ -54,10 +54,11 @@ headers = {
 # addメソッド：新しい単語として、発音を依頼する
 # requestメソッド：既存する単語を別のユーザに発音してもらう
 class Forvo(object):
-    URL = 'https://ja.forvo.com/search/{word}/ja/'
 
-    def __init__(self):
+    def __init__(self, lang='ja'):
         self.results = []
+        self.lang = lang
+        self.URL = 'https://ja.forvo.com/search/{word}/%s/' % lang
 
     def base64_decode(self, code):
         return js2py.eval_js(JS)(code)
@@ -89,11 +90,11 @@ class Forvo(object):
             item_doc = PyQuery(item_response_body)
             for locale in item_doc("article.pronunciations"):
                 locale = PyQuery(locale)
-                ja_header = locale('header[id=ja] em')
+                lang_header = locale('header[id=%s] em' % self.lang)
                 # debug()
-                if ja_header:
+                if lang_header:
                     word = re.compile(
-                        r"(.*) の発音").search(ja_header.text()).group(1)
+                        r"(.*) の発音").search(lang_header.text()).group(1)
                     for i in locale('span.play'):
                         i = PyQuery(i)
                         text = i.parents('li').eq(0).text()

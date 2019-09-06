@@ -13,11 +13,9 @@ import logging
 from sqlalchemy import create_engine, func, or_, and_
 from sqlalchemy.orm import sessionmaker, aliased
 
-from .parser.weblio import Weblio
-from .parser.hujiang import Hujiang
-from .parser.naver import Naver
-from .parser.yourei import Yourei
-from .db_tables import DictJA
+from .parser.dictionarycom import Dictionarycom
+from .parser.yourdictionary import Yourdictionary
+from .db_tables import DictEN
 
 import sys
 sys.path.append('../../')
@@ -37,8 +35,8 @@ class Query(object):
         self.sql = connect_db()
 
     def search(self, word):
-        res = self.sql.query(DictJA)\
-            .filter(DictJA.word == word)\
+        res = self.sql.query(DictEN)\
+            .filter(DictEN.word == word)\
             .first()
         if res:
             return {
@@ -58,36 +56,22 @@ def search_handler(event):
     params = event['queryParams']
     path = event['path']
     print("path", path)
-    if path == '/ja/search/query':
+    if path == '/en/search/query':
         search = Query()
-    elif path == '/ja/search/meaning':
-        search = Weblio()
-    elif path == '/ja/search/chinese':
-        search = Hujiang()
-    elif path == '/ja/search/audio/naver':
-        search = Naver()
-    elif path == '/ja/search/audio/forvo':
-        search = Forvo('ja')
-    elif path == '/ja/search/audio/forvo/add':
-        forvo = Forvo('ja')
+    elif path == '/en/search/meaning':
+        search = Dictionarycom()
+    elif path == '/en/search/audio/forvo':
+        search = Forvo('en')
+    elif path == '/en/search/audio/forvo/add':
+        forvo = Forvo('en')
         return forvo.add(params['word'].decode('utf-8'))
-    elif path == '/ja/search/audio/forvo/request':
-        forvo = Forvo('ja')
+    elif path == '/en/search/audio/forvo/request':
+        forvo = Forvo('en')
         return forvo.request(params['word_id'].decode('utf-8'))
-    elif path == '/ja/search/example':
-        yourei = Yourei()
-        res = yourei.search(params['word'].decode(
-            'utf-8'), 20, int(params.get('offset', 1)))
-        if res['status'] == 'success':
-            res['type'] = 'yourei'
-            return res
-        else:
-            naver = Naver()
-            return naver.example(params['word'].decode('utf-8'))
-    elif path == '/ja/search/example_db':
-        return search_example_from_db(params['word'].decode('utf-8'))
-    elif path == '/ja/search/image':
-        return image_search(params['word'].decode('utf-8'), lang='ja')
+    elif path == '/en/search/example':
+        search = Yourdictionary()
+    elif path == '/en/search/image':
+        return image_search(params['word'].decode('utf-8'), lang='en')
 
     if params.get('word'):
         return search.search(params['word'].decode('utf-8'))
