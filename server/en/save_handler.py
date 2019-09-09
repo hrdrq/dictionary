@@ -25,6 +25,10 @@ class Save(object):
     def __del__(self):
         self.sql.close()
 
+    def save_to_s3(self, name, data):
+        # return
+        self.s3.Object(BUCKET_NAME, name).put(Body=data)
+
     def save(self, data):
         if 'audio' in data:
             audio = data['audio']
@@ -36,8 +40,7 @@ class Save(object):
                     response = requests.get(a['url'])
                     audio_data = response.content
                     audio_name = a['file_name'].replace(' ', '') + '.mp3'
-                    self.s3.Object(BUCKET_NAME, audio_name).put(
-                        Body=audio_data)
+                    self.save_to_s3(audio_name, audio_data)
                     name_list.append(audio_name)
                 data['audio'] = ','.join(name_list)
             else:
@@ -46,12 +49,11 @@ class Save(object):
                 response = requests.get(audio)
                 audio_data = response.content
                 audio_name = data['word'] + '.mp3'
-                self.s3.Object(BUCKET_NAME, audio_name).put(Body=audio_data)
+                self.save_to_s3(audio_name, audio_data)
                 data['audio'] = audio_name
         if 'image' in data:
             image_name = str(uuid.uuid4()) + '.png'
-            self.s3.Object(BUCKET_NAME, 'image/' + image_name).put(
-                Body=base64.b64decode(data['image']))
+            self.save_to_s3('image/' + image_name, base64.b64decode(data['image']))
             data['image'] = image_name
         data_ = {'word': data.pop('word')}
         data_['new'] = True
@@ -83,8 +85,7 @@ class Save(object):
             .first()
         if 'image' in data:
             image_name = str(uuid.uuid4()) + '.png'
-            self.s3.Object(BUCKET_NAME, 'image/' + image_name).put(
-                Body=base64.b64decode(data['image']))
+            self.save_to_s3('image/' + image_name, base64.b64decode(data['image']))
             data['image'] = image_name
         for key in data:
             setattr(raw.detail, key, data[key])

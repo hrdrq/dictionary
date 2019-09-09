@@ -58,6 +58,10 @@ class Forvo(object):
     def __init__(self, lang='ja'):
         self.results = []
         self.lang = lang
+        if lang == 'ja':
+            self.id_lang = "76"
+        elif lang == 'en':
+            self.id_lang = "39"
         self.URL = 'https://ja.forvo.com/search/{word}/%s/' % lang
 
     def base64_decode(self, code):
@@ -134,9 +138,6 @@ class Forvo(object):
             return {"status": 'error', "error_detail": "Nothing found."}
 
     def add(self, word):
-        # 76は日本語のコード
-        # url = "https://ja.forvo.com/word-add/{word}?word={word}&id_lang=76".format(
-        #     word=word)
         url = "https://ja.forvo.com/word-add/"
 
         # ログイン処理
@@ -152,7 +153,7 @@ class Forvo(object):
         #     return {"status": 'error', "error_detail": res.status_code}
         res = s.post(url, data={
             "word": word,
-            "id_lang": "76",
+            "id_lang": self.id_lang,
             "tags": "",
             "current_tags": "",
             "modify": "0",
@@ -161,9 +162,6 @@ class Forvo(object):
         return {"status": 'success'}
 
     def request(self, word_id):
-        # 76は日本語のコード
-        # url = "https://ja.forvo.com/notsatisfied/?idWord={word_id}&idLang=76".format(
-        #     word_id=word_id)
         url = "https://ja.forvo.com/notsatisfied/"
 
         # ログイン処理
@@ -179,7 +177,7 @@ class Forvo(object):
         #     return {"status": 'error', "error_detail": res.status_code}
         res = s.post(url, data={
             "f": "requestPronounciation",
-            "idLang": "76",
+            "idLang": self.id_lang,
             "idWord": str(word_id)
         })
         return {"status": 'success'}
