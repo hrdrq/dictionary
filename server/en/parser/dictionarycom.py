@@ -64,6 +64,10 @@ class Dictionarycom(object):
                         x = label.text()
                         meaning_div('.luna-labset').replaceWith(x)
                         # print(meaning_div)
+                    a = meaning_div('a')
+                    if a:
+                        x = a.text()
+                        meaning_div('a').replaceWith(x)
                     text = meaning_div.children('span').clone().children().remove().end().text()
                     meaning = dict(text=text)
                     example = meaning_div('.luna-example').text()
