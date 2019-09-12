@@ -13,7 +13,8 @@ class Dictionarycom(object):
     URL = "https://www.dictionary.com/browse/{word}"
 
     def search(self, word):
-        response = requests.get(self.URL.format(word=word), headers=headers)
+        # print(self.URL.format(word=word))
+        response = requests.get(self.URL.format(word=word.replace(' ', '-')), headers=headers)
         text = response.text
 
         # f = open('temp.txt')
@@ -22,7 +23,10 @@ class Dictionarycom(object):
 
         doc = PyQuery(text)
         results = []
-        divs = doc('section div:has("section.entry-headword"):has(".pron-spell-container"):has(".pron-ipa-content")')
+        if ' ' in word:
+            divs = doc('section div:has("section.entry-headword")')
+        else:
+            divs = doc('section div:has("section.entry-headword"):has(".pron-spell-container"):has(".pron-ipa-content")')
         if not divs:
             return []
 
@@ -58,24 +62,37 @@ class Dictionarycom(object):
                     meaning_divs = section.children('div>div')
                 for meaning_div in meaning_divs:
                     meaning_div = PyQuery(meaning_div)
-                    label = meaning_div('.luna-label')
-                    if label:
-                        # print('xxx', label.text())
-                        x = label.text()
-                        meaning_div('.luna-labset').replaceWith(x)
-                        # print(meaning_div)
-                    a = meaning_div('a')
-                    if a:
-                        x = a.text()
-                        meaning_div('a').replaceWith(x)
-                    text = meaning_div.children('span').clone().children().remove().end().text()
-                    meaning = dict(text=text)
+                    # label = meaning_div('.luna-label')
+                    # if label:
+                    #     # print('xxx', label.text())
+                    #     x = label.text()
+                    #     meaning_div('.luna-labset').replaceWith(x)
+                    #     # print(meaning_div)
+                    # a = meaning_div('a')
+                    # if a:
+                    #     x = a.text()
+                    #     meaning_div('a').replaceWith(x)
+                    # decoration = meaning_div('.italic, .bold')
+                    # if decoration:
+                    #     # debug()
+                    #     for _decoration in decoration:
+                    #
+                    #         # x = decoration.text()
+                    #         _decoration.replaceWith(_decoration.text())
+                    # text = meaning_div.children('span').clone().children().remove().end().text()
+
+                    meaning = dict()
                     example = meaning_div('.luna-example').text()
                     if example:
                         meaning['example'] = example
                     sub_lis = meaning_div('li')
                     if sub_lis:
                         meaning['subs'] = list(map(lambda x: PyQuery(x).text(), sub_lis))
+
+                    meaning_div('.luna-example').remove()
+                    meaning_div('li').remove()
+                    text = meaning_div.text()[:-1]
+                    meaning['text'] = text
 
                     meanings.append(meaning)
                 # print(len(meaning_divs))
@@ -103,4 +120,5 @@ if __name__ == '__main__':
     parser.add_argument('-w', '--word', default='test')
     a = parser.parse_args()
     d = Dictionarycom()
+    print('word:', a.word)
     print(json.dumps(d.search(a.word), indent=2, ensure_ascii=False))
