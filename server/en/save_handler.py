@@ -39,7 +39,7 @@ class Save(object):
                         data['forvo'] = True
                     response = requests.get(a['url'])
                     audio_data = response.content
-                    audio_name = a['file_name'].replace(' ', '') + '.mp3'
+                    audio_name = a['file_name'].replace(' ', '_') + '.mp3'
                     self.save_to_s3(audio_name, audio_data)
                     name_list.append(audio_name)
                 data['audio'] = ','.join(name_list)
@@ -48,7 +48,7 @@ class Save(object):
                     data['forvo'] = True
                 response = requests.get(audio)
                 audio_data = response.content
-                audio_name = data['word'] + '.mp3'
+                audio_name = data['word'].replace(' ', '_') + '.mp3'
                 self.save_to_s3(audio_name, audio_data)
                 data['audio'] = audio_name
         if 'image' in data:
