@@ -14,7 +14,7 @@ class Yourdictionary(object):
 
     def search(self, word):
         response = requests.get(self.URL.format(word=word), headers=headers).json()
-        if 'Code' in response and response['Code'] == 'NotFoundError':
+        if ('Code' in response and response['Code'] == 'NotFoundError') or ('message' in response and 'No results found for word' in response['message']):
             return {"status": 'error', "error_detail": "Nothing found."}
         else:
             return {"status": 'success', "results": response['data']['sentences']}

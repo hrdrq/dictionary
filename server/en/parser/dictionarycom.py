@@ -28,7 +28,7 @@ class Dictionarycom(object):
         else:
             divs = doc('section div:has("section.entry-headword"):has(".pron-spell-container"):has(".pron-ipa-content")')
         if not divs:
-            return []
+            return {"status": 'error', "error_detail": "Nothing found."}
 
         for def_div in divs:
             def_div = PyQuery(def_div)
