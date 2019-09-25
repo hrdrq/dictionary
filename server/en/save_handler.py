@@ -44,12 +44,13 @@ class Save(object):
                     name_list.append(audio_name)
                 data['audio'] = ','.join(name_list)
             else:
-                if audio.find('forvo') > -1:
-                    data['forvo'] = True
-                response = requests.get(audio)
-                audio_data = response.content
                 audio_name = data['word'].replace(' ', '_') + '.mp3'
-                self.save_to_s3(audio_name, audio_data)
+                if audio:
+                    if audio.find('forvo') > -1:
+                        data['forvo'] = True
+                    response = requests.get(audio)
+                    audio_data = response.content
+                    self.save_to_s3(audio_name, audio_data)
                 data['audio'] = audio_name
         if 'image' in data:
             image_name = str(uuid.uuid4()) + '.png'
