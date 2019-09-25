@@ -107,13 +107,19 @@ class Forvo(object):
                         if match:
                             user = match.group(1)
                         onclick = i.attr('onclick')
-                        match = re.compile(
-                            r"Play\(.*,'(.*)',.*,.*,.*,.*,.*\)").search(onclick)
+                        match = re.compile(r"Play\(.*,'(.*)',.*,.*,.*,.*,.*\)").search(onclick)
                         if match:
                             code = match.group(1)
                             url = 'https://audio00.forvo.com/mp3/' + \
                                 self.base64_decode(code)
                             self.results.append({'word': word, 'url': url, 'word_id': word_id, 'user': user})
+                        else:
+                            match = re.compile(r"PlayPhrase\(.*,'(.*)',.*\)").search(onclick)
+                            if match:
+                                code = match.group(1)
+                                url = 'https://audio00.forvo.com/phrases/mp3/' + \
+                                    self.base64_decode(code)
+                                self.results.append({'word': word, 'url': url, 'word_id': word_id, 'user': user})
 
     def search(self, word):
         response = requests.get(self.URL.format(word=word), headers=headers)
@@ -128,8 +134,29 @@ class Forvo(object):
             docs.append(doc)
         else:
             docs = [doc]
-        urls = [PyQuery(x).attr('href') for doc in docs for x in doc(
-            "article.search_words")("li.list-words")("a.word")]
+        urls = []
+        for doc in docs:
+            for href in doc("article.search_words")("li.list-words")("a.word"):
+                href = PyQuery(href)
+                if self.lang != 'en' or href.text().upper() == word.upper():
+                    urls.append(href.attr('href'))
+        if self.lang == 'en':
+            found = False
+            for doc in docs:
+                if found:
+                    break
+                for href in doc("article.search_words li.list-words a.word, article.search_words li.list-phrases a.word"):
+                    href = PyQuery(href)
+                    # print(href.text().upper())
+                    if href.text().upper() == word.upper():
+                        urls = [href.attr('href')]
+                        found = True
+                        break
+        else:
+            urls = [PyQuery(x).attr('href') for doc in docs for x in doc(
+                "article.search_words")("li.list-words")("a.word")]
+        # debug()
+        # print("urls", urls)
         self.parse_items(urls)
 
         if self.results:
@@ -181,3 +208,13 @@ class Forvo(object):
             "idWord": str(word_id)
         })
         return {"status": 'success'}
+
+if __name__ == '__main__':
+    import json
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-w', '--word', default='test')
+    parser.add_argument('-l', '--lang', default='en')
+    a = parser.parse_args()
+    d = Forvo(lang=a.lang)
+    print(json.dumps(d.search(a.word), indent=2, ensure_ascii=False))
