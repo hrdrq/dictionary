@@ -16,3 +16,6 @@
   - UIをChrome拡張機能に入れ、任意のウェブサイトを見るとき、ショートカットで単語を検索できる
 - エクスポート
   - MySQLの新しいデータや更新されたデータをエクスポートし、勉強用アプリにインポートする
+
+
+*/1 * * * * ps ax |grep -v grep | grep server.py || /usr/bin/python3 /home/ubuntu/dictionary/server/server.py
