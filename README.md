@@ -18,4 +18,4 @@
   - MySQLの新しいデータや更新されたデータをエクスポートし、勉強用アプリにインポートする
 
 
-*/1 * * * * ps ax |grep -v grep | grep server.py || /usr/bin/python3 /home/ubuntu/dictionary/server/server.py
+*/1 * * * * ps ax |grep -v grep | grep server.py || cd /home/ubuntu/dictionary/server; /usr/bin/python3 server.py
