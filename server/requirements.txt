@@ -9,3 +9,4 @@ tornado
 boto3
 mtranslate
 pillow
+vcrpy

@@ -26,7 +26,7 @@ class Save(object):
         self.sql.close()
 
     def save_to_s3(self, name, data):
-        # return
+        return
         self.s3.Object(BUCKET_NAME, name).put(Body=data)
 
     def save(self, data):
