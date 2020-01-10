@@ -9,7 +9,7 @@ import uuid
 
 from .db_tables import DictEN, DictENDetail
 from credentials import *
-from utils import result_parse, connect_db, connect_s3
+from server.utils import result_parse, connect_db, connect_s3
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

@@ -17,12 +17,9 @@ from .parser.dictionarycom import Dictionarycom
 from .parser.yourdictionary import Yourdictionary
 from .db_tables import DictEN
 
-import sys
-sys.path.append('../../')
-from utils import result_parse, connect_db
-sys.path.append('../')
-from forvo import Forvo
-from image_search import image_search
+from server.utils import result_parse, connect_db
+from server.forvo import Forvo
+from server.image_search import image_search
 
 
 logger = logging.getLogger()

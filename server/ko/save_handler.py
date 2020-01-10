@@ -10,7 +10,7 @@ import jaconv
 
 from .db_tables import DictKO
 from credentials import *
-from utils import result_parse_ko, connect_db, connect_s3
+from server.utils import result_parse_ko, connect_db, connect_s3
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

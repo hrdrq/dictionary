@@ -1,36 +1,60 @@
 # encoding: utf-8
 import json
+import unittest
 from unittest.mock import Mock, patch, PropertyMock
 
 import vcr
 
 from test import DictTest
-from server.ja.parser import naver
-
-class MockResponse:
-    def __init__(self, file_name):
-        with open(file_name) as f:
-            self.json_data = json.load(f)
-
-    def json(self):
-        return self.json_data
+from server.ja.parser.naver import Naver
+from server.forvo import Forvo
 
 def pp(data):
     print(json.dumps(data, indent=2, ensure_ascii=False))
 
-class TestNaver(DictTest):
-    # with patch('server.ja.parser.naver.requests.get') as mock:
-    #     mock.return_value = MockResponse('test/naver_test.json')
-    #     res = naver.Naver().search('apple')
-    #     print(res)
-    with vcr.use_cassette('test/vcr_cassettes/naver_test.yaml'):
-        res = naver.Naver().search('テスト')
-        pp(res)
+class TestParser(DictTest):
 
-    with vcr.use_cassette('test/vcr_cassettes/naver_kino.yaml'):
-        res = naver.Naver().search('機能')
-        pp(res)
+    def test_naver(self):
+        with vcr.use_cassette('test/vcr_cassettes/naver_test.yaml'):
+            res = Naver().search('テスト')
+            self.assertEqual(res['status'], 'success')
+            pp(res)
 
-    with vcr.use_cassette('test/vcr_cassettes/naver_user.yaml'):
-        res = naver.Naver().search('ユーザー')
-        pp(res)
+        with vcr.use_cassette('test/vcr_cassettes/naver_kino.yaml'):
+            res = Naver().search('機能')
+            self.assertEqual(res['status'], 'success')
+            pp(res)
+
+        with vcr.use_cassette('test/vcr_cassettes/naver_user.yaml'):
+            res = Naver().search('ユーザー')
+            self.assertEqual(res['status'], 'success')
+            pp(res)
+
+    @unittest.skip('')
+    def test_forvo_en(self):
+        with vcr.use_cassette('test/vcr_cassettes/forvo_en_test.yaml'):
+            res = Forvo('en').search('test')
+            self.assertEqual(res['status'], 'success')
+            pp(res)
+
+        with vcr.use_cassette('test/vcr_cassettes/forvo_en_fire.yaml'):
+            res = Forvo('en').search('fire')
+            self.assertEqual(res['status'], 'success')
+            pp(res)
+
+    def test_forvo_ja(self):
+        with vcr.use_cassette('test/vcr_cassettes/forvo_ja_test.yaml'):
+            res = Forvo('ja').search('テスト')
+            self.assertEqual(res['status'], 'success')
+            pp(res)
+
+        with vcr.use_cassette('test/vcr_cassettes/forvo_ja_taihen.yaml'):
+            res = Forvo('ja').search('大変')
+            self.assertEqual(res['status'], 'success')
+            pp(res)
+
+        with vcr.use_cassette('test/vcr_cassettes/forvo_ja_nagai.yaml'):
+            res = Forvo('ja').search('長い')
+            self.assertEqual(res['status'], 'success')
+            pp(res)
+

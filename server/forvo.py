@@ -14,7 +14,7 @@ import requests
 import asyncio
 import time
 import pdb
-debug = pdb.set_trace
+d = pdb.set_trace
 
 # import sys
 # sys.path.append('../../../')
@@ -57,12 +57,13 @@ class Forvo(object):
 
     def __init__(self, lang='ja'):
         self.results = []
-        self.lang = lang
         if lang == 'ja':
             self.id_lang = "76"
         elif lang == 'en':
+            lang = 'en_usa'
             self.id_lang = "39"
         self.URL = 'https://ja.forvo.com/search/{word}/%s/' % lang
+        self.lang = lang
 
     def base64_decode(self, code):
         return js2py.eval_js(JS)(code)
@@ -71,36 +72,48 @@ class Forvo(object):
     async def do_request(urls):
         def requests_get_wrapper(url):
             try:
-                return requests.get(url)
-            except :
+                return requests.get(url, headers=headers)
+            except Exception as e:
+                print('requests_get_wrapper err:', e)
                 return None
         results = []
         loop = asyncio.get_event_loop()
         for url in urls:
             req = loop.run_in_executor(None, requests_get_wrapper, url)
             res = await req
+            # print('do_request res:', res)
             if res:
-                results.append(res.text)
+                results.append(PyQuery(res.text))
         return results
 
     def parse_items(self, urls):
         loop = asyncio.get_event_loop()
         docs = loop.run_until_complete(self.do_request(urls))
-        for item_response_body in docs:
+        for item_doc in docs:
             word_id = None
-            match = re.search("notSatisfied(Lang)?\( ?'(\d+)' ?[,\)]", item_response_body)
+            match = re.search("notSatisfied(Lang)?\( ?'(\d+)' ?[,\)]", item_doc.html())
             if match:
                 word_id = match.group(2)
-            item_doc = PyQuery(item_response_body)
             for locale in item_doc("article.pronunciations"):
                 locale = PyQuery(locale)
-                lang_header = locale('header[id=%s] em' % self.lang)
-                # debug()
+                lang_header = locale('header[id=%s]' % self.lang.split('_')[0])
                 if lang_header:
                     word = re.compile(
                         r"(.*) の発音").search(lang_header.text()).group(1)
-                    for i in locale('span.play'):
-                        i = PyQuery(i)
+                    if self.lang == 'en_usa':
+                        els = locale('header[id=%s]' % self.lang).next_all()
+                    else:
+                        els = locale('.show-all-pronunciations li')
+                    lis = []
+                    for el in els:
+                      el = PyQuery(el)
+                      if el.has_class('li-ad'):
+                        continue
+                      if el.is_('header'):
+                        break
+                      lis.append(el)
+                    for li in lis:
+                        i = PyQuery(li('span.play'))
                         text = i.parents('li').eq(0).text()
                         user = None
                         match = re.search("発音したユーザ: (.*) \(", text)
@@ -124,8 +137,7 @@ class Forvo(object):
     def search(self, word):
         response = requests.get(self.URL.format(word=word), headers=headers)
         doc = PyQuery(response.text)
-        page_urls = ['https://ja.forvo.com' +
-                     PyQuery(x).attr('href') for x in doc('nav.pagination')('a.num')]
+        page_urls = [PyQuery(x).attr('href') for x in doc('nav.pagination')('a.num')]
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         if page_urls:
@@ -135,12 +147,7 @@ class Forvo(object):
         else:
             docs = [doc]
         urls = []
-        for doc in docs:
-            for href in doc("article.search_words")("li.list-words")("a.word"):
-                href = PyQuery(href)
-                if self.lang != 'en' or href.text().upper() == word.upper():
-                    urls.append(href.attr('href'))
-        if self.lang == 'en':
+        if self.lang == 'en_usa':
             found = False
             for doc in docs:
                 if found:
@@ -155,8 +162,6 @@ class Forvo(object):
         else:
             urls = [PyQuery(x).attr('href') for doc in docs for x in doc(
                 "article.search_words")("li.list-words")("a.word")]
-        # debug()
-        # print("urls", urls)
         self.parse_items(urls)
 
         if self.results:

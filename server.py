@@ -13,10 +13,10 @@ import tornado.ioloop
 import tornado.web
 
 # 日本語辞書
-from ja.main import JAHandler
+from server.ja.main import JAHandler
 # 韓国語辞書（メンテナンスしてない）
-from ko.main import KOHandler
-from en.main import ENHandler
+from server.ko.main import KOHandler
+from server.en.main import ENHandler
 
 # CORSのないサイトのファイルをダウンロードするためのプロクシ
 def proxy(event):

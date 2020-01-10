@@ -10,9 +10,7 @@ from .parser.naver import Naver
 from .parser.forvo import Forvo
 from .db_tables import DictKO
 # import tables
-import sys
-sys.path.append('../../')
-from utils import result_parse_ko, connect_db
+from server.utils import result_parse_ko, connect_db
 
 
 logger = logging.getLogger()
