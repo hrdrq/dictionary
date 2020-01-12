@@ -16,6 +16,8 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 logging.getLogger('boto3').setLevel(logging.WARNING)
 
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36'}
 
 class Save(object):
 
@@ -34,7 +36,7 @@ class Save(object):
                 for a in audio:
                     if a['url'].find('forvo') > -1:
                         data['forvo'] = True
-                    response = requests.get(a['url'])
+                    response = requests.get(a['url'], headers=headers)
                     audio_data = response.content
                     audio_name = a['file_name'].replace(' ', '') + '.mp3'
                     self.s3.Object(BUCKET_NAME, audio_name).put(
@@ -44,7 +46,7 @@ class Save(object):
             else:
                 if audio.find('forvo') > -1:
                     data['forvo'] = True
-                response = requests.get(audio)
+                response = requests.get(audio, headers=headers)
                 audio_data = response.content
                 audio_name = data['word'] + '.mp3'
                 self.s3.Object(BUCKET_NAME, audio_name).put(Body=audio_data)

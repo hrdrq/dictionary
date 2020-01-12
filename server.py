@@ -7,10 +7,13 @@
 
 from __future__ import print_function, unicode_literals
 import os
+import pdb
+d = pdb.set_trace
 
 import requests
 import tornado.ioloop
 import tornado.web
+import urllib.parse
 
 # 日本語辞書
 from server.ja.main import JAHandler
@@ -18,12 +21,14 @@ from server.ja.main import JAHandler
 from server.ko.main import KOHandler
 from server.en.main import ENHandler
 
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36'}
 # CORSのないサイトのファイルをダウンロードするためのプロクシ
 def proxy(event):
     url = event['queryParams'].get('url')
     if not url:
         return
-    r = requests.get(url)
+    r = requests.get(url, headers=headers)
     return {
         'Content-Type': r.headers['Content-Type'],
         'data': r.content
@@ -55,6 +60,9 @@ class MainHandler(tornado.web.RequestHandler):
         if path.find('/proxy') != -1:
             res = proxy(event)
             self.set_header("Content-Type", res['Content-Type'])
+            # d()
+            filename = event['queryParams'].get('filename').decode()
+            self.set_header("Content-Disposition", "attachment;filename={};".format(urllib.parse.quote(filename)))
             self.write(res['data'])
         else:
             self.write({
