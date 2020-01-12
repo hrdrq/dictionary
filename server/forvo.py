@@ -6,6 +6,7 @@
 # word_id：単語のID（既存する単語を別のユーザに発音してもらう時に使う）
 
 import logging
+import threading
 import re
 import json
 import js2py
@@ -49,6 +50,16 @@ JS = '''function base64_decode(a) {
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36'}
 
+def base64_decode(code):
+    return js2py.eval_js(JS)(code)
+
+def get(url, res):
+    try:
+        response = requests.get(url, headers=headers)
+        res.append(PyQuery(response.text))
+    except:
+        res.append(None)
+
 # 最初はsearchを読んで、各ページのURLを取得し、
 # 並行処理で各ページの情報を取得
 # addメソッド：新しい単語として、発音を依頼する
@@ -65,30 +76,13 @@ class Forvo(object):
         self.URL = 'https://ja.forvo.com/search/{word}/%s/' % lang
         self.lang = lang
 
-    def base64_decode(self, code):
-        return js2py.eval_js(JS)(code)
-
-    @staticmethod
-    async def do_request(urls):
-        def requests_get_wrapper(url):
-            try:
-                return requests.get(url, headers=headers)
-            except Exception as e:
-                print('requests_get_wrapper err:', e)
-                return None
-        results = []
-        loop = asyncio.get_event_loop()
-        for url in urls:
-            req = loop.run_in_executor(None, requests_get_wrapper, url)
-            res = await req
-            # print('do_request res:', res)
-            if res:
-                results.append(PyQuery(res.text))
-        return results
-
     def parse_items(self, urls):
-        loop = asyncio.get_event_loop()
-        docs = loop.run_until_complete(self.do_request(urls))
+        docs = []
+        threads = [threading.Thread(target=get, args=(url, docs)) for url in urls]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
         for item_doc in docs:
             word_id = None
             match = re.search("notSatisfied(Lang)?\( ?'(\d+)' ?[,\)]", item_doc.html())
@@ -124,28 +118,28 @@ class Forvo(object):
                         if match:
                             code = match.group(1)
                             url = 'https://audio00.forvo.com/mp3/' + \
-                                self.base64_decode(code)
+                                base64_decode(code)
                             self.results.append({'word': word, 'url': url, 'word_id': word_id, 'user': user})
                         else:
                             match = re.compile(r"PlayPhrase\(.*,'(.*)',.*\)").search(onclick)
                             if match:
                                 code = match.group(1)
                                 url = 'https://audio00.forvo.com/phrases/mp3/' + \
-                                    self.base64_decode(code)
+                                    base64_decode(code)
                                 self.results.append({'word': word, 'url': url, 'word_id': word_id, 'user': user})
 
     def search(self, word):
         response = requests.get(self.URL.format(word=word), headers=headers)
         doc = PyQuery(response.text)
         page_urls = [PyQuery(x).attr('href') for x in doc('nav.pagination')('a.num')]
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        docs = [doc]
         if page_urls:
-            loop = asyncio.get_event_loop()
-            docs = loop.run_until_complete(self.do_request(page_urls))
-            docs.append(doc)
-        else:
-            docs = [doc]
+            threads = [threading.Thread(target=get, args=(url, docs)) for url in page_urls]
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
+
         urls = []
         if self.lang == 'en_usa':
             found = False
