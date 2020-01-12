@@ -9,6 +9,7 @@
 
 from __future__ import print_function, unicode_literals
 import sys
+sys.path.append('../..')
 sys.path.append('../../server')
 sys.path.append('../../server/en')
 
