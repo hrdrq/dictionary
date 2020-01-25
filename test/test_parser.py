@@ -10,10 +10,12 @@ from server.ja.parser.naver import Naver
 from server.forvo import Forvo
 
 def pp(data):
+    # return
     print(json.dumps(data, indent=2, ensure_ascii=False))
 
 class TestParser(DictTest):
 
+    # @unittest.skip("b")
     def test_naver(self):
         with vcr.use_cassette('test/vcr_cassettes/naver_test.yaml'):
             res = Naver().search('テスト')
@@ -30,7 +32,7 @@ class TestParser(DictTest):
             self.assertEqual(res['status'], 'success')
             pp(res)
 
-    @unittest.skip('')
+    # @unittest.skip("b")
     def test_forvo_en(self):
         with vcr.use_cassette('test/vcr_cassettes/forvo_en_test.yaml'):
             res = Forvo('en').search('test')
@@ -42,6 +44,7 @@ class TestParser(DictTest):
             self.assertEqual(res['status'], 'success')
             pp(res)
 
+    # @unittest.skip("b")
     def test_forvo_ja(self):
         with vcr.use_cassette('test/vcr_cassettes/forvo_ja_test.yaml'):
             res = Forvo('ja').search('テスト')

@@ -146,16 +146,14 @@ class Forvo(object):
             for doc in docs:
                 if found:
                     break
-                for href in doc("article.search_words li.list-words a.word, article.search_words li.list-phrases a.word"):
+                for href in doc("article.search_words li:not(.ad) a.word"):
                     href = PyQuery(href)
-                    # print(href.text().upper())
                     if href.text().upper() == word.upper():
                         urls = [href.attr('href')]
                         found = True
                         break
         else:
-            urls = [PyQuery(x).attr('href') for doc in docs for x in doc(
-                "article.search_words")("li.list-words")("a.word")]
+            urls = [PyQuery(x).attr('href') for doc in docs for x in doc("article.search_words li:not(.ad) a.word")]
         self.parse_items(urls)
 
         if self.results:
