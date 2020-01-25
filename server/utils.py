@@ -3,11 +3,15 @@ from __future__ import print_function, unicode_literals
 import json
 import decimal
 import datetime
+from io import BytesIO
+import base64
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import boto3
 from boto3.session import Session
+from PIL import Image
+from pydub import AudioSegment
 
 from credentials import *
 
@@ -85,3 +89,15 @@ def connect_s3():
                          region_name=REGION_NAME)
 
     return s3_session.resource('s3')
+
+def base64_to_jpg(base64code):
+    im = Image.open(BytesIO(base64.b64decode(base64code)))
+    out = BytesIO()
+    im.save(out, format='jpeg', quality=20)
+    return out.getvalue()
+
+def compress_mp3(data):
+    sound = AudioSegment.from_file(BytesIO(data))
+    out = BytesIO()
+    sound.export(out, format="mp3", bitrate="32k")
+    return out.getvalue()

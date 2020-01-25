@@ -4,12 +4,11 @@ import logging
 import requests
 from sqlalchemy import func, or_, and_
 from sqlalchemy.orm import aliased
-import base64
 import uuid
 
 from .db_tables import DictEN, DictENDetail
 from credentials import *
-from server.utils import result_parse, connect_db, connect_s3
+from server.utils import result_parse, connect_db, connect_s3, base64_to_jpg, compress_mp3
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -39,7 +38,7 @@ class Save(object):
                     if a['url'].find('forvo') > -1:
                         data['forvo'] = True
                     response = requests.get(a['url'], headers=headers)
-                    audio_data = response.content
+                    audio_data = compress_mp3(response.content)
                     audio_name = a['file_name'].replace(' ', '_') + '.mp3'
                     self.save_to_s3(audio_name, audio_data)
                     name_list.append(audio_name)
@@ -50,12 +49,12 @@ class Save(object):
                     if audio.find('forvo') > -1:
                         data['forvo'] = True
                     response = requests.get(audio, headers=headers)
-                    audio_data = response.content
+                    audio_data = compress_mp3(response.content)
                     self.save_to_s3(audio_name, audio_data)
                 data['audio'] = audio_name
         if 'image' in data:
-            image_name = str(uuid.uuid4()) + '.png'
-            self.save_to_s3('image/' + image_name, base64.b64decode(data['image']))
+            image_name = str(uuid.uuid4()) + '.jpg'
+            self.save_to_s3('image/' + image_name, base64_to_jpg(data['image']))
             data['image'] = image_name
         data_ = {'word': data.pop('word')}
         data_['new'] = True
@@ -86,8 +85,8 @@ class Save(object):
             .filter(DictEN.id == id)\
             .first()
         if 'image' in data:
-            image_name = str(uuid.uuid4()) + '.png'
-            self.save_to_s3('image/' + image_name, base64.b64decode(data['image']))
+            image_name = str(uuid.uuid4()) + '.jpg'
+            self.save_to_s3('image/' + image_name, base64_to_jpg(data['image']))
             data['image'] = image_name
         for key in data:
             setattr(raw.detail, key, data[key])
