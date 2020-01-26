@@ -91,7 +91,7 @@ def connect_s3():
     return s3_session.resource('s3')
 
 def base64_to_jpg(base64code):
-    im = Image.open(BytesIO(base64.b64decode(base64code)))
+    im = Image.open(BytesIO(base64.b64decode(base64code))).convert('RGB')
     out = BytesIO()
     im.save(out, format='jpeg', quality=20)
     return out.getvalue()
@@ -99,5 +99,5 @@ def base64_to_jpg(base64code):
 def compress_mp3(data):
     sound = AudioSegment.from_file(BytesIO(data))
     out = BytesIO()
-    sound.export(out, format="mp3", bitrate="32k")
+    sound.export(out, format="mp3", bitrate="64k")
     return out.getvalue()
