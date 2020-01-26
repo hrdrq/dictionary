@@ -42,7 +42,6 @@ class DictJADetail(Base):
     audio = Column(String, default=None)
     image = Column(String, default=None)
     meaning = Column(TEXT, nullable=False)
-    chinese = Column(TEXT, nullable=False)
     example = Column(TEXT, default=None)
     examples = Column(TEXT, default=None)
     listening_hint = Column(TEXT, default=None)

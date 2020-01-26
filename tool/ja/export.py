@@ -28,7 +28,7 @@ from credentials import *
 from db_tables import DictJA, DictJADetail
 from utils import result_parse, connect_db, connect_s3, JSONEncoder
 
-FIELDS = ['word', 'kana', 'gogen', 'accent', 'meaning', 'chinese', 'example', 'listening_hint','examples', 'image', 'audio']
+FIELDS = ['word', 'kana', 'gogen', 'accent', 'meaning', 'example', 'listening_hint','examples', 'image', 'audio']
 
 update_db = False
 
