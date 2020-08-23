@@ -1,7 +1,6 @@
 requests
 pyquery
 js2py
-grequests
 pymysql
 sqlalchemy
 jaconv
